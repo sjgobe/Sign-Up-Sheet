@@ -7,7 +7,7 @@
 <meta name="description" content="Attendance and presenter sign-up for the Fall 2026 BoodleBox faculty and staff meetings.">
 <script>
   // ===== SETUP: paste your Google Apps Script web app URL between the quotes =====
-  window.SIGNUP_API_URL = "https://script.google.com/macros/s/AKfycbwzeLaLJGYP8bB8p3jHi4NHTkCb6oZ_toUinLe5dC5cIyZNGu0zrfayN98kjK67NWsp/exec";
+  window.SIGNUP_API_URL = "";
   // e.g. "https://script.google.com/macros/s/AKfycb.../exec"
 </script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&family=Caveat:wght@500;600&display=swap">
@@ -122,6 +122,18 @@ button.ghost{background:transparent}
 button.joined{background:var(--ok-soft);color:var(--ok);border-color:transparent;cursor:default}
 button:disabled{opacity:.6;cursor:not-allowed}
 .day-foot{margin-top:10px}
+.pick{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;padding:6px 12px 6px 8px;border:1px solid var(--line);border-radius:99px;background:var(--surface);cursor:pointer;user-select:none}
+.pick input{accent-color:var(--current);width:16px;height:16px;margin:0}
+.pick:has(input:checked){border-color:var(--current);background:var(--ok-soft);color:var(--ok)}
+.joined-note{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ok);font-weight:600}
+.submitbar{position:sticky;bottom:0;z-index:6;margin-top:24px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;box-shadow:0 -8px 24px -14px rgba(40,75,99,.45)}
+.submitbar .sum{font-size:14px;color:var(--ink-2)}
+.submitbar .sum b{color:var(--ink)}
+.submitbar button.primary{padding:9px 18px;font-weight:600}
+.confirm{margin-top:16px;padding:14px 18px;border-radius:var(--radius);background:var(--ok-soft);color:var(--ok);display:flex;gap:12px;align-items:flex-start}
+.confirm .ck{font-size:22px;line-height:1}
+.confirm b{font-family:var(--font-display);font-size:16px;display:block;margin-bottom:2px}
+.confirm p{margin:0;font-size:14px}
 
 .ideas{margin-top:40px;padding:18px 20px;border-radius:var(--radius);background:var(--surface-2);position:relative;overflow:hidden}
 .ideas::after{content:"";position:absolute;right:-30px;bottom:-40px;width:120px;height:120px;border-radius:50%;background:var(--sunlight);opacity:.35}
@@ -161,13 +173,13 @@ button:disabled{opacity:.6;cursor:not-allowed}
   <div class="namebar">
     <label for="myname">Your name</label>
     <input type="text" id="myname" placeholder="First and last name" autocomplete="name">
-    <p class="hint">Type your name once, then use the buttons below. Entries are saved to a shared list that everyone sees.</p>
+    <p class="hint">Type your name once, tick the dates you plan to attend, then press <b>Submit my sign-up</b> at the bottom. Entries are saved to a shared list that everyone sees.</p>
   </div>
   <div class="status" id="status"></div>
 
   <div class="section">
     <h2>Friday / Tuesday meeting pairs</h2>
-    <p class="sub">Each pair repeats the same mini-session on a Friday and the following Tuesday. Sign up to attend either or both days.</p>
+    <p class="sub">Each pair repeats the same mini-session on a Friday and the following Tuesday. Tick either or both days, then submit at the bottom of the page.</p>
     <div class="slots" id="pairs"></div>
   </div>
 
@@ -175,6 +187,12 @@ button:disabled{opacity:.6;cursor:not-allowed}
     <h2>Unpaired dates</h2>
     <p class="sub">Open for suggestions. If you'd like to share something on one of these dates, add yourself as a presenter.</p>
     <div class="slots" id="singles"></div>
+  </div>
+
+  <div class="confirm" id="confirm" hidden><span class="ck">✓</span><div><b>You're signed up.</b><p id="confirm-text"></p></div></div>
+  <div class="submitbar" id="submitbar" hidden>
+    <span class="sum" id="submit-sum"></span>
+    <button class="primary" id="submit-btn" type="button">Submit my sign-up</button>
   </div>
 
   <div class="ideas">
@@ -210,6 +228,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
   let presenters = [];   // {id, slot, name, topic, both, mode, ts}
   let myIds = new Set(); // entries this browser created
   let openForm = null;   // slot id with presenter form open
+  let picked = new Set(); // dates ticked but not yet submitted
 
   // per-browser conveniences
   try{ nameInput.value = localStorage.getItem("bb-name") || ""; }catch(e){}
@@ -243,6 +262,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
     }
     $("#pairs").innerHTML = SLOTS.filter(s=>s.pair).map(slotHtml).join("");
     $("#singles").innerHTML = SLOTS.filter(s=>!s.pair).map(slotHtml).join("");
+    updateSubmitBar();
     if(saved && openForm){
       const f = document.querySelector(`form[data-pres-form="${openForm}"]`);
       if(f){
@@ -310,8 +330,8 @@ button:disabled{opacity:.6;cursor:not-allowed}
       : `<li class="none"><span class="none">No one signed up yet</span></li>`;
     let foot = "";
     if(!past && canWrite){
-      foot = joined ? `<button class="small joined" disabled>✓ You're signed up</button>`
-                    : `<button class="small primary" data-join="${d.id}">I'll attend</button>`;
+      foot = joined ? `<span class="joined-note">✓ You're signed up</span>`
+                    : `<label class="pick"><input type="checkbox" id="pick-${d.id}" data-pick="${d.id}" ${picked.has(d.id) ? "checked" : ""}> I'll attend</label>`;
     }
     return `
     <div class="day ${past ? "past":""}">
@@ -325,8 +345,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
   document.addEventListener("click", async e=>{
     const t = e.target.closest("button");
     if(!t) return;
-    if(t.dataset.join){ if(needName()) return; await addAttendance(t.dataset.join, t); }
-    else if(t.dataset.rmAtt){ await removeDoc("attendance", t.dataset.rmAtt, t); }
+    if(t.dataset.rmAtt){ await removeDoc("attendance", t.dataset.rmAtt, t); }
     else if(t.dataset.rmPres){ await removeDoc("presenters", t.dataset.rmPres, t); }
     else if(t.dataset.openForm){ if(needName()) return; setStatus(""); openForm = t.dataset.openForm; render(); $("#topic-"+openForm)?.focus(); }
     else if(t.dataset.cancelForm){ openForm = null; render(); }
@@ -343,6 +362,29 @@ button:disabled{opacity:.6;cursor:not-allowed}
     await addPresenter(slot, topic, bothEl ? bothEl.value==="yes" : false, mode, f);
   });
   nameInput.addEventListener("change", render);
+  document.addEventListener("change", e=>{
+    const c = e.target.closest("input[data-pick]");
+    if(!c) return;
+    if(c.checked) picked.add(c.dataset.pick); else picked.delete(c.dataset.pick);
+    updateSubmitBar();
+  });
+  const DATE_LABEL = {}; SLOTS.forEach(sl=>sl.dates.forEach(d=>DATE_LABEL[d.id]=d.label));
+  function updateSubmitBar(){
+    const bar = $("#submitbar"), n = picked.size;
+    bar.hidden = n===0;
+    if(n){ $("#submit-sum").innerHTML = `<b>${n} date${n>1?"s":""} selected</b> · ${[...picked].sort().map(d=>esc(DATE_LABEL[d]||d)).join(", ")}`; }
+  }
+  $("#submit-btn").addEventListener("click", async ()=>{
+    if(needName()) return;
+    const dates = [...picked].sort();
+    if(!dates.length) return;
+    await submitAttendance(dates, $("#submit-btn"));
+  });
+  function showConfirm(dates){
+    $("#confirm-text").textContent = `${myName()}, you're on the list for ${dates.map(d=>DATE_LABEL[d]||d).join(", ")}. Meetings run 2:00–3:00 p.m. See you there!`;
+    $("#confirm").hidden = false;
+    $("#confirm").scrollIntoView({behavior:"smooth", block:"center"});
+  }
 
   // ---------- data (Google Apps Script backend) ----------
   const API_URL = window.SIGNUP_API_URL;
@@ -378,12 +420,12 @@ button:disabled{opacity:.6;cursor:not-allowed}
     }
     finally{ if(btn) btn.disabled = false; }
   }
-  function addAttendance(date, btn){
+  function submitAttendance(dates, btn){
     return guardWrite(async ()=>{
-      const name = myName();
-      if(attendance.some(a=>a.date===date && a.name.toLowerCase()===name.toLowerCase())) return null;
-      const json = await api({action:"add_attendance", date, name});
-      if(json.id) rememberMine(json.id);
+      const json = await api({action:"add_attendance", dates, name: myName()});
+      (json.ids || []).forEach(rememberMine);
+      picked = new Set();
+      showConfirm(dates);
       return json;
     }, btn);
   }
