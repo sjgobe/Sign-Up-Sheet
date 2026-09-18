@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BoodleBox Fall Meetings — Sign-up</title>
+<meta name="description" content="Attendance and presenter sign-up for the Fall 2026 BoodleBox faculty and staff meetings.">
+<script>
+  // ===== SETUP: paste your Google Apps Script web app URL between the quotes =====
+  window.SIGNUP_API_URL = "https://script.google.com/macros/s/AKfycbwzeLaLJGYP8bB8p3jHi4NHTkCb6oZ_toUinLe5dC5cIyZNGu0zrfayN98kjK67NWsp/exec";
+  // e.g. "https://script.google.com/macros/s/AKfycb.../exec"
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&family=Caveat:wght@500;600&display=swap">
+<style>
+:root{
+  /* Lake + Curiosity palette */
+  --paper:#F7F3EA; --lake:#284B63; --current:#4F8C89; --coral:#E87963; --sunlight:#E7B44C; --ink:#30343B;
+  --bg:var(--paper); --surface:#FFFDF8; --surface-2:#EFE9DC; --line:#DDD5C4;
+  --ink-2:#5A6068; --ink-3:#858B93;
+  --accent:var(--lake); --accent-ink:#ffffff; --accent-soft:#DFE8ED;
+  --ok:#3B6F6C; --ok-soft:#DCEBE9; --warn:#8A5A12; --warn-soft:#F6E7C4;
+  --danger:#C95A46; --past:#9AA0A8;
+  --radius:14px;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-display:"Lora",Georgia,"Times New Roman",serif;
+  --font-hand:"Caveat","Segoe Script","Bradley Hand",cursive;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1F2A34; --surface:#28343F; --surface-2:#31404C; --line:#40505D;
+    --ink:#F2EEE5; --ink-2:#C2C7CC; --ink-3:#8E969E;
+    --accent:#8FC1D0; --accent-ink:#152430; --accent-soft:#2C4553;
+    --ok:#8CC8C3; --ok-soft:#274643; --warn:#F0C86A; --warn-soft:#4A3D1C;
+    --danger:#F19B88; --past:#6B7681;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1F2A34; --surface:#28343F; --surface-2:#31404C; --line:#40505D;
+  --ink:#F2EEE5; --ink-2:#C2C7CC; --ink-3:#8E969E;
+  --accent:#8FC1D0; --accent-ink:#152430; --accent-soft:#2C4553;
+  --ok:#8CC8C3; --ok-soft:#274643; --warn:#F0C86A; --warn-soft:#4A3D1C;
+  --danger:#F19B88; --past:#6B7681;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.55;margin:0;overflow-x:hidden}
+.wrap{max-width:900px;margin:0 auto;padding-inline:16px;padding-block:32px 64px;position:relative}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;color:var(--accent)}
+h1{font-size:clamp(34px,6vw,52px);line-height:1.05;font-weight:700;letter-spacing:-.01em;position:relative;display:inline-block;padding-bottom:10px}
+h1::after{content:"";position:absolute;left:0;bottom:0;width:64px;height:5px;border-radius:3px;background:var(--coral)}
+.eyebrow{font-family:var(--font-body);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2);font-weight:600;margin-bottom:12px}
+.hero{display:flex;gap:20px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.hero-art{position:relative;width:150px;height:110px;flex:0 0 auto}
+.hero-art .c{position:absolute;border-radius:50%;opacity:.9}
+.hero-art .c1{width:84px;height:84px;background:var(--current);left:0;top:18px}
+.hero-art .c2{width:66px;height:66px;background:var(--sunlight);left:54px;top:0;mix-blend-mode:multiply;opacity:.85}
+.hero-art .c3{width:44px;height:44px;background:var(--coral);left:96px;top:56px;opacity:.8}
+.hand{font-family:var(--font-hand);color:var(--accent);font-size:26px;line-height:1.1;font-weight:600;transform:rotate(-4deg);display:inline-block}
+.lede{color:var(--ink-2);max-width:62ch;margin-top:16px}
+.lede p{margin:0 0 8px}
+
+/* name bar */
+.namebar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin-top:24px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;box-shadow:0 8px 24px -14px rgba(40,75,99,.45)}
+.namebar label{font-weight:600;font-size:14px;color:var(--accent)}
+.namebar input{flex:1 1 220px;min-width:0}
+.namebar .hint{flex-basis:100%;font-size:12.5px;color:var(--ink-3);margin:0}
+input[type=text],select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:9px 12px;width:100%}
+input[type=text]:focus,select:focus,button:focus-visible{outline:2px solid var(--current);outline-offset:1px}
+
+/* status */
+.status{margin-top:14px;font-size:13.5px;padding:10px 14px;border-radius:10px;background:var(--warn-soft);color:var(--warn);display:none}
+.status.show{display:block}
+
+/* sections */
+.section{margin-top:40px}
+.section h2{font-size:24px;font-weight:600;margin-bottom:6px}
+.section .sub{color:var(--ink-2);font-size:14px;margin:0 0 16px;max-width:62ch}
+.slots{display:flex;flex-direction:column;gap:16px}
+.slot{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.slot-head{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+.slot-head h3{font-size:19px;font-weight:600}
+.slot-head .dates{color:var(--ink-2);font-size:14px}
+.slot-head .past-tag{margin-left:auto;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--past);font-weight:600}
+
+.presenter{padding:12px 18px 14px;background:var(--surface-2);display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:start}
+.presenter .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--ink-2);padding-top:4px}
+.pres-list{display:flex;flex-direction:column;gap:6px}
+.pres-item{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline}
+.pres-item .who{font-weight:600;font-family:var(--font-display);font-size:16px}
+.pres-item .topic{color:var(--ink-2)}
+.pres-item .tag{font-size:11.5px;padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.pres-empty{color:var(--ink-3);font-style:italic}
+.pres-actions{grid-column:2}
+.pres-form{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;padding-top:10px;border-top:1px dashed var(--line)}
+.pres-form .full{grid-column:1/-1}
+.pres-form .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pres-form .row label{font-size:13.5px;display:inline-flex;gap:5px;align-items:center}
+.pres-form .btns{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+
+.days{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.days.single{grid-template-columns:1fr}
+.day{padding:14px 18px 16px}
+.day + .day{border-left:1px solid var(--line)}
+.day-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}
+.day-head .d{font-weight:600;font-family:var(--font-display);font-size:16px}
+.day-head .n{font-size:12.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.day.past .d{color:var(--past)}
+.att{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;min-height:22px}
+.att li{display:flex;align-items:center;gap:8px;font-size:14px;padding:2px 0}
+.att li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--current);flex:0 0 auto}
+.att li.none::before{display:none}
+.att li .me{font-size:11px;color:var(--current);font-weight:600}
+.att li .rm{margin-left:auto;background:none;border:0;color:var(--ink-3);cursor:pointer;font-size:12.5px;padding:2px 8px;border-radius:99px;opacity:0;transition:opacity .15s}
+.att li:hover .rm,.att li .rm:focus-visible{opacity:1}
+.att li .rm:hover{background:var(--surface-2);color:var(--danger)}
+.att .none{color:var(--ink-3);font-style:italic;font-size:13.5px}
+
+button{font:inherit;cursor:pointer;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 14px;font-weight:500}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.primary:hover{filter:brightness(1.08)}
+button.small{font-size:13px;padding:6px 12px}
+button.ghost{background:transparent}
+button.joined{background:var(--ok-soft);color:var(--ok);border-color:transparent;cursor:default}
+button:disabled{opacity:.6;cursor:not-allowed}
+.day-foot{margin-top:10px}
+
+.ideas{margin-top:40px;padding:18px 20px;border-radius:var(--radius);background:var(--surface-2);position:relative;overflow:hidden}
+.ideas::after{content:"";position:absolute;right:-30px;bottom:-40px;width:120px;height:120px;border-radius:50%;background:var(--sunlight);opacity:.35}
+.ideas h2{font-size:18px;margin-bottom:8px;font-weight:600}
+.ideas ul{margin:0;padding-left:18px;color:var(--ink-2);font-size:14px;position:relative}
+.ideas li{margin:4px 0}
+.foot{margin-top:28px;font-size:13px;color:var(--ink-3)}
+.tagline{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 16px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
+
+@media (max-width:560px){
+  .days{grid-template-columns:1fr}
+  .day + .day{border-left:0;border-top:1px solid var(--line)}
+  .presenter{grid-template-columns:1fr}
+  .pres-actions{grid-column:1}
+  .pres-form{grid-template-columns:1fr}
+  .att li .rm{opacity:1}
+  .hero-art{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">BoodleBox Faculty &amp; Staff Meetings · Fall 2026</div>
+      <h1>Mini-sessions &amp; attendance</h1>
+    </div>
+    <div class="hero-art" aria-hidden="true"><span class="c c1"></span><span class="c c2"></span><span class="c c3"></span></div>
+  </div>
+  <div style="margin-top:14px"><span class="hand">Explore. Try something. Ask a question. Learn together.</span></div>
+  <div class="lede">
+    <p>Meetings are in person, 2:00–3:00 p.m. A 15-minute mini-session opens each meeting. Let us know which dates you plan to attend, and if you'd like to lead a mini-session, add yourself as a presenter on any slot.</p>
+    <p>Mini-sessions don't need to be formal. Share something you tried, demo a workflow, walk through an assignment, show a prompt that worked (or didn't), or raise an AI question for the group. Presenters are encouraged to give the same session on both dates of a Friday/Tuesday pair, but one date is fine. If you can't come in person but would record a video of your session, that works too.</p>
+  </div>
+
+  <div class="namebar">
+    <label for="myname">Your name</label>
+    <input type="text" id="myname" placeholder="First and last name" autocomplete="name">
+    <p class="hint">Type your name once, then use the buttons below. Entries are saved to a shared list that everyone sees.</p>
+  </div>
+  <div class="status" id="status"></div>
+
+  <div class="section">
+    <h2>Friday / Tuesday meeting pairs</h2>
+    <p class="sub">Each pair repeats the same mini-session on a Friday and the following Tuesday. Sign up to attend either or both days.</p>
+    <div class="slots" id="pairs"></div>
+  </div>
+
+  <div class="section">
+    <h2>Unpaired dates</h2>
+    <p class="sub">Open for suggestions. If you'd like to share something on one of these dates, add yourself as a presenter.</p>
+    <div class="slots" id="singles"></div>
+  </div>
+
+  <div class="ideas">
+    <h2>A few ideas for mini-sessions</h2>
+    <ul>
+      <li>A BoodleBox feature or workflow you have found useful</li>
+      <li>A classroom activity, assignment, or prompt you have tried</li>
+      <li>A research or administrative use of AI</li>
+      <li>Something that worked well, or something that did not and what you learned from it</li>
+      <li>An AI-related question or issue you think the group should discuss</li>
+    </ul>
+  </div>
+  <p class="foot">Hover over a name to remove an entry (yours, or one added by mistake). Questions or a topic that doesn't fit a slot? Reach out to Sarah.</p>
+  <div class="tagline"><span>People · Ideas · AI · What's next</span><span>Same place. New possibilities.</span></div>
+</div>
+
+<script>
+(function(){
+  const SLOTS = [
+    {id:"pair1", label:"Pair 1", dates:[{id:"2026-09-18",label:"Fri. Sept. 18"},{id:"2026-09-22",label:"Tues. Sept. 22"}], pair:true},
+    {id:"pair2", label:"Pair 2", dates:[{id:"2026-10-02",label:"Fri. Oct. 2"},{id:"2026-10-06",label:"Tues. Oct. 6"}], pair:true},
+    {id:"pair3", label:"Pair 3", dates:[{id:"2026-10-30",label:"Fri. Oct. 30"},{id:"2026-11-03",label:"Tues. Nov. 3"}], pair:true},
+    {id:"pair4", label:"Pair 4", dates:[{id:"2026-11-13",label:"Fri. Nov. 13"},{id:"2026-11-17",label:"Tues. Nov. 17"}], pair:true},
+    {id:"oct16", label:"Friday, October 16", dates:[{id:"2026-10-16",label:"Fri. Oct. 16"}], pair:false},
+    {id:"dec1",  label:"Tuesday, December 1", dates:[{id:"2026-12-01",label:"Tues. Dec. 1"}], pair:false},
+    {id:"dec11", label:"Friday, December 11", dates:[{id:"2026-12-11",label:"Fri. Dec. 11"}], pair:false},
+  ];
+  const $ = s => document.querySelector(s);
+  const nameInput = $("#myname");
+  const statusEl = $("#status");
+  let canWrite = true;
+  let attendance = [];   // {id, date, name, ts}
+  let presenters = [];   // {id, slot, name, topic, both, mode, ts}
+  let myIds = new Set(); // entries this browser created
+  let openForm = null;   // slot id with presenter form open
+
+  // per-browser conveniences
+  try{ nameInput.value = localStorage.getItem("bb-name") || ""; }catch(e){}
+  try{ myIds = new Set(JSON.parse(localStorage.getItem("bb-mine") || "[]")); }catch(e){}
+  nameInput.addEventListener("input", ()=>{ try{ localStorage.setItem("bb-name", nameInput.value); }catch(e){} });
+  function rememberMine(id){ myIds.add(id); try{ localStorage.setItem("bb-mine", JSON.stringify([...myIds])); }catch(e){} }
+
+  const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local
+  const isPast = d => d <= todayStr; // sign-up closes on the day of the meeting
+
+  function setStatus(msg){ statusEl.textContent = msg || ""; statusEl.classList.toggle("show", !!msg); }
+  function myName(){ return nameInput.value.trim(); }
+  function needName(){
+    if(myName()) return false;
+    nameInput.focus();
+    setStatus("Add your name in the box above first, then sign up.");
+    return true;
+  }
+  function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+  // ---------- render ----------
+  function render(){
+    // keep an in-progress presenter form's values across live re-renders
+    let saved = null;
+    if(openForm){
+      const f = document.querySelector(`form[data-pres-form="${openForm}"]`);
+      if(f){ saved = { topic: f.querySelector("#topic-"+openForm).value,
+                       both: f.querySelector(`input[name="both-${openForm}"]:checked`)?.value,
+                       mode: f.querySelector(`input[name="mode-${openForm}"]:checked`)?.value,
+                       focus: document.activeElement === f.querySelector("#topic-"+openForm) }; }
+    }
+    $("#pairs").innerHTML = SLOTS.filter(s=>s.pair).map(slotHtml).join("");
+    $("#singles").innerHTML = SLOTS.filter(s=>!s.pair).map(slotHtml).join("");
+    if(saved && openForm){
+      const f = document.querySelector(`form[data-pres-form="${openForm}"]`);
+      if(f){
+        const t = f.querySelector("#topic-"+openForm); t.value = saved.topic;
+        if(saved.both){ const r = f.querySelector(`input[name="both-${openForm}"][value="${saved.both}"]`); if(r) r.checked = true; }
+        if(saved.mode){ const r = f.querySelector(`input[name="mode-${openForm}"][value="${saved.mode}"]`); if(r) r.checked = true; }
+        if(saved.focus){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); }
+      }
+    }
+  }
+  function slotHtml(slot){
+    const pres = presenters.filter(p=>p.slot===slot.id).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const allPast = slot.dates.every(d=>isPast(d.id));
+    const presList = pres.length ? pres.map(p=>`
+      <div class="pres-item">
+        <span class="who">${esc(p.name)}</span>
+        <span class="topic">${esc(p.topic || "Topic to come")}</span>
+        ${slot.pair ? `<span class="tag">${p.both ? "Both dates" : "One date"}</span>` : ""}
+        ${p.mode==="video" ? `<span class="tag">Video</span>` : ""}
+        ${myIds.has(p.id) ? `<button class="rm small ghost" data-rm-pres="${p.id}" title="Remove">remove</button>` : ""}
+      </div>`).join("") : `<div class="pres-empty">Open — no presenter yet</div>`;
+    const formOpen = openForm===slot.id;
+    return `
+    <div class="slot" data-slot="${slot.id}">
+      <div class="slot-head">
+        <h3>${esc(slot.label)}</h3>
+        ${slot.pair ? `<span class="dates">${slot.dates.map(d=>esc(d.label)).join(" &amp; ")}</span>` : ""}
+        ${allPast ? `<span class="past-tag">Past</span>` : ""}
+      </div>
+      <div class="presenter">
+        <div class="k">Presenter</div>
+        <div class="pres-list">${presList}</div>
+        ${(!allPast && canWrite) ? `<div class="pres-actions">${formOpen ? "" : `<button class="small" data-open-form="${slot.id}">${pres.length ? "Add another presenter" : "Sign up to present"}</button>`}</div>` : ""}
+        ${formOpen ? presFormHtml(slot) : ""}
+      </div>
+      <div class="days ${slot.pair ? "" : "single"}">
+        ${slot.dates.map(d=>dayHtml(d)).join("")}
+      </div>
+    </div>`;
+  }
+  function presFormHtml(slot){
+    return `
+    <form class="pres-form" data-pres-form="${slot.id}">
+      <div class="full"><input type="text" id="topic-${slot.id}" placeholder="Topic or working title" required></div>
+      ${slot.pair ? `<div class="row full"><span style="font-size:13px;color:var(--ink-2)">Can you do both dates?</span>
+        <label><input type="radio" name="both-${slot.id}" value="yes" checked> Yes</label>
+        <label><input type="radio" name="both-${slot.id}" value="no"> Just one</label></div>` : ""}
+      <div class="row full"><span style="font-size:13px;color:var(--ink-2)">Format</span>
+        <label><input type="radio" name="mode-${slot.id}" value="inperson" checked> In person</label>
+        <label><input type="radio" name="mode-${slot.id}" value="video"> Recorded video</label></div>
+      <div class="btns">
+        <button type="button" class="small ghost" data-cancel-form="${slot.id}">Cancel</button>
+        <button type="submit" class="small primary">Add me as presenter</button>
+      </div>
+    </form>`;
+  }
+  function dayHtml(d){
+    const list = attendance.filter(a=>a.date===d.id).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const past = isPast(d.id);
+    const me = myName().toLowerCase();
+    const joined = list.some(a=>a.name.toLowerCase()===me && me);
+    const items = list.length ? list.map(a=>`
+      <li>${esc(a.name)}${myIds.has(a.id) ? `<span class="me">you</span>` : ""}
+        ${canWrite ? `<button class="rm" data-rm-att="${a.id}" title="Remove ${esc(a.name)}">remove</button>` : ""}</li>`).join("")
+      : `<li class="none"><span class="none">No one signed up yet</span></li>`;
+    let foot = "";
+    if(!past && canWrite){
+      foot = joined ? `<button class="small joined" disabled>✓ You're signed up</button>`
+                    : `<button class="small primary" data-join="${d.id}">I'll attend</button>`;
+    }
+    return `
+    <div class="day ${past ? "past":""}">
+      <div class="day-head"><span class="d">${esc(d.label)}</span><span class="n">${list.length} attending</span></div>
+      <ul class="att">${items}</ul>
+      <div class="day-foot">${foot}</div>
+    </div>`;
+  }
+
+  // ---------- events ----------
+  document.addEventListener("click", async e=>{
+    const t = e.target.closest("button");
+    if(!t) return;
+    if(t.dataset.join){ if(needName()) return; await addAttendance(t.dataset.join, t); }
+    else if(t.dataset.rmAtt){ await removeDoc("attendance", t.dataset.rmAtt, t); }
+    else if(t.dataset.rmPres){ await removeDoc("presenters", t.dataset.rmPres, t); }
+    else if(t.dataset.openForm){ if(needName()) return; setStatus(""); openForm = t.dataset.openForm; render(); $("#topic-"+openForm)?.focus(); }
+    else if(t.dataset.cancelForm){ openForm = null; render(); }
+  });
+  document.addEventListener("submit", async e=>{
+    const f = e.target.closest("form[data-pres-form]");
+    if(!f) return;
+    e.preventDefault();
+    if(needName()) return;
+    const slot = f.dataset.presForm;
+    const topic = f.querySelector("#topic-"+slot).value.trim();
+    const bothEl = f.querySelector(`input[name="both-${slot}"]:checked`);
+    const mode = f.querySelector(`input[name="mode-${slot}"]:checked`).value;
+    await addPresenter(slot, topic, bothEl ? bothEl.value==="yes" : false, mode, f);
+  });
+  nameInput.addEventListener("change", render);
+
+  // ---------- data (Google Apps Script backend) ----------
+  const API_URL = window.SIGNUP_API_URL;
+  let loading = false;
+  async function api(payload){
+    if(!API_URL){ const e = new Error("no api"); e.code="no_api"; throw e; }
+    const res = await fetch(API_URL, {method:"POST", body: JSON.stringify(payload)}); // no custom headers: avoids CORS preflight
+    if(!res.ok){ const e = new Error("http "+res.status); e.code="unavailable"; throw e; }
+    const json = await res.json();
+    if(json.error){ const e = new Error(json.error); e.code = json.code || "unavailable"; throw e; }
+    return json;
+  }
+  async function load(){
+    if(!API_URL || loading) return;
+    loading = true;
+    try{
+      const res = await fetch(API_URL + (API_URL.includes("?") ? "&" : "?") + "t=" + Date.now());
+      const json = await res.json();
+      attendance = json.attendance || [];
+      presenters = json.presenters || [];
+      render();
+    }catch(err){ /* keep last good data; try again on next poll */ }
+    finally{ loading = false; }
+  }
+  async function guardWrite(fn, btn){
+    if(!API_URL){ setStatus("This page isn't connected to its sign-up list yet. Send your name and dates to Sarah instead."); return; }
+    if(btn) btn.disabled = true;
+    try{ const json = await fn(); setStatus(""); if(json){ attendance = json.attendance || attendance; presenters = json.presenters || presenters; render(); } }
+    catch(err){
+      if(err.code==="unavailable") setStatus("Couldn't reach the sign-up list just now. Please try again in a moment.");
+      else setStatus("Something went wrong saving that. Please try again.");
+      render();
+    }
+    finally{ if(btn) btn.disabled = false; }
+  }
+  function addAttendance(date, btn){
+    return guardWrite(async ()=>{
+      const name = myName();
+      if(attendance.some(a=>a.date===date && a.name.toLowerCase()===name.toLowerCase())) return null;
+      const json = await api({action:"add_attendance", date, name});
+      if(json.id) rememberMine(json.id);
+      return json;
+    }, btn);
+  }
+  function addPresenter(slot, topic, both, mode, form){
+    const btn = form.querySelector("button[type=submit]");
+    return guardWrite(async ()=>{
+      const json = await api({action:"add_presenter", slot, name:myName(), topic, both, mode});
+      if(json.id) rememberMine(json.id);
+      openForm = null;
+      return json;
+    }, btn);
+  }
+  function removeDoc(coll, id, btn){
+    if(btn.dataset.confirm!=="1"){ btn.dataset.confirm="1"; btn.textContent="click again to remove"; btn.style.opacity="1"; setTimeout(()=>{ if(btn.isConnected){btn.dataset.confirm="";btn.textContent="remove";btn.style.opacity="";} },4000); return Promise.resolve(); }
+    return guardWrite(()=>api({action:"remove", collection:coll, id}), btn);
+  }
+
+  // ---------- boot ----------
+  render();
+  if(!API_URL){
+    canWrite = false;
+    setStatus("This page isn't connected to its sign-up list yet (the web app URL hasn't been set). The schedule is shown, but names can't be saved.");
+    render();
+  } else {
+    load();
+    setInterval(()=>{ if(document.visibilityState==="visible") load(); }, 30000);
+    document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") load(); });
+  }
+})();
+</script>
+
+</body>
+</html>
